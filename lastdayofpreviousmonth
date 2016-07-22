@@ -1,0 +1,8 @@
+--for BO:
+
+--last day of previous month:BO
+INT_AUTH_TXN_D.MIS_DT>=
+case when @Prompt('1.Please Enter Start Date','D','D Gom Edw Dit V Int Auth Txn D\Mis Dt',mono,Free,not_persistent,{'01/01/2015 12:00:00 AM'})='2015-01-01' and extract(day from date)<=15 then  date-extract(day from date-16) when @Prompt('1.Please Enter Start Date','D','D Gom Edw Dit V Int Auth Txn D\Mis Dt',mono,Free,not_persistent,{'01/01/2015 12:00:00 AM'})='2015-01-01' and extract(day from date)>15 then date-extract(day from date-1) else @Prompt('1.Please Enter Start Date','D','D Gom Edw Dit V Int Auth Txn D\Mis Dt',mono,Free,not_persistent,{'01/01/2015 12:00:00 AM'}) end
+and INT_AUTH_TXN_D.MIS_DT<= 
+case when @Prompt('2.Please Enter End  Date','D','D Gom Edw Dit V Int Auth Txn D\Mis Dt',mono,Free,not_persistent,{'01/01/2015 12:00:00 AM'})='2015-01-01' and extract(day from date)<=15  then date-extract(day from date)
+when @Prompt('2.Please Enter End  Date','D','D Gom Edw Dit V Int Auth Txn D\Mis Dt',mono,Free,not_persistent,{'01/01/2015 12:00:00 AM'})='2015-01-01' and extract(day from date)>15 then date-extract(day from date) +15 else  @Prompt('2.Please Enter End  Date','D','D Gom Edw Dit V Int Auth Txn D\Mis Dt',mono,Free,not_persistent,{'01/01/2015 12:00:00 AM'}) end 
