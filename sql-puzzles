@@ -1,0 +1,280 @@
+
+select N.CLNT_NBR , sum((case	 
+	when	INT_ACCT_MASTER.ACCT_STAT_CDE = '01' then 1 else	0 end	)) over (partition by N.CLNT_NBR) STAT1
+(select DISTINCT A.CLNT_NBR
+ from 
+(
+select
+*
+from (
+			select
+			  distinct a.CLNT_NBR, a.ACCT_STAT_CDE,
+			  row_number() over (partition by a.CLNT_NBR  order by a.ACCT_STAT_CDE) as num
+			from (
+					select
+					  distinct
+					  CLNT_NBR,
+					  ACCT_STAT_CDE
+					from	INT_ACCT_MASTER
+					where INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST', 'IPP', 'SB', 'MF','RCPLUS')
+			        ) a
+			)b			
+		where  b.ACCT_STAT_CDE ='02'
+) A,
+(  
+	  select distinct
+	  CLNT_NBR,ACCT_CLSE_DT,ACCT_NBR
+	from	INT_ACCT_MASTER
+	where INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST', 'IPP', 'SB', 'MF','RCPLUS') and ACCT_STAT_CDE='02'
+	and extract (month from "INT_ACCT_MASTER"."ACCT_CLSE_DT") = extract (month from current_date) 
+--and extract (year from "INT_ACCT_MASTER"."ACCT_CLSE_DT") = extract (year from current_date) 
+	
+	) B
+												where A.CLNT_NBR=B.CLNT_NBR 
+												group by A.CLNT_NBR,B.ACCT_NBR,A.num
+												having max(A.num)=1
+												)N
+												
+	------------------------------------------14
+		select
+distinct
+CLNT_NBR,Acct_nbr,ACCT_STAT_CDE,
+(
+case	when ACCT_STAT_CDE='01' then 1 
+	when	ACCT_STAT_CDE='02' then 0  
+else	100000000 
+end	)as TStat,
+count( TStat for INT_ACCT_MASTER.CLNT_NBR)
+from	INT_ACCT_MASTER
+where	INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST',	'IPP', 'SB', 'MF',		'RCPLUS') 
+
+								
+								
+								
+								----------sel  distinct ACCT_STAT_CDE from 	INT_ACCT_MASTER		    			      
+								
+								
+							
+sel distinct M.CLNT_NBR,M.STAT1
+ from (
+	select distinct "INT_ACCT_MASTER"."CLNT_NBR" "CLNT_NBR",acct_nbr,ACCT_STAT_CDE,ACCT_CLSE_DT, (
+case	 
+	when	"INT_ACCT_MASTER"."ACCT_STAT_CDE" = '01' then 1 
+else	0 
+end	) "ACCT_STAT_CDE1" , sum((case	 
+	when	"INT_ACCT_MASTER"."ACCT_STAT_CDE" = '01' then 1 else	0 end	)) over (partition by "INT_ACCT_MASTER"."CLNT_NBR") "STAT1" 
+ from INT_ACCT_MASTER 
+
+ 
+ )M
+ where M.STAT1=0 and extract (month from M.ACCT_CLSE_DT) = extract (month from current_date)     --and extract (year from "INT_ACCT_MASTER"."ACCT_CLSE_DT") = extract (year from current_date) 
+  and 
+ CLNT_NBR= '000003644'
+ 
+ -------------13
+ 
+ 
+ (
+select * from (
+						 select M.CLNT_NBR,M.ACCT_NBR,M.ACCT_CLSE_DT, M.TStat,
+						 row_number() over (partition by  M.CLNT_NBR  order by M.ACCT_NBR,M.ACCT_CLSE_DT) as num11
+						 from
+									 (
+									select	DISTINCT A.CLNT_NBR,B.ACCT_NBR, B.ACCT_CLSE_DT,A.TStat			    
+									 from 
+									    (
+									    select
+									    b.CLNT_NBR, b.ACCT_STAT_CDE,b.num,b.TStat
+									   
+										 from (
+										    			select
+										    			  distinct a.CLNT_NBR, a.ACCT_STAT_CDE,a.TStat,
+										    			  row_number() over (partition by a.CLNT_NBR  order by a.ACCT_STAT_CDE) as num
+											    			from (
+											    					select
+											    					  distinct
+											    					  CLNT_NBR,(case when ACCT_STAT_CDE='01' then 1 else 0 end ) TStat,
+											    					  ACCT_STAT_CDE
+											    					from	INT_ACCT_MASTER
+											    					where INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST', 'IPP', 'SB', 'MF','RCPLUS')
+											    			        ) a
+										    			)b			
+										    		where  b.ACCT_STAT_CDE ='02'
+										    ) A,
+										    (  
+										    	  
+										select	distinct
+										    	  CLNT_NBR,ACCT_CLSE_DT,ACCT_NBR
+										    	from	INT_ACCT_MASTER
+										    	where INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST', 'IPP', 'SB',
+												'MF','RCPLUS') 
+											and	ACCT_STAT_CDE='02'
+										    	and extract (month from "INT_ACCT_MASTER"."ACCT_CLSE_DT") = extract (month from current_date)     --and extract (year from "INT_ACCT_MASTER"."ACCT_CLSE_DT") = extract (year from current_date) 
+										    	
+										    	) B
+										where A.CLNT_NBR=B.CLNT_NBR 
+										group by A.CLNT_NBR,B.ACCT_NBR,A.num, B.ACCT_CLSE_DT,A.TStat
+										having max(A.num)=1
+									
+							     ) M
+                 ) N
+where N.num11=1
+)				--------------11
+
+select distinct E.CLNT_NBR
+,F.ACCT_NBR,F.ACCT_CLSE_DT11, F.indicator55,F.ACCT_STAT_CDE,F.SRC_SYS_ID
+ from
+
+ 
+(
+
+select	DISTINCT A.CLNT_NBR,B.ACCT_NBR, B.ACCT_CLSE_DT
+    
+ from 
+    (
+    select
+    b.CLNT_NBR, b.ACCT_STAT_CDE,b.num
+   
+ from (
+    			select
+    			  distinct a.CLNT_NBR, a.ACCT_STAT_CDE,
+    			  row_number() over (partition by a.CLNT_NBR  order by a.ACCT_STAT_CDE) as num
+    			from (
+    					select
+    					  distinct
+    					  CLNT_NBR,
+    					  ACCT_STAT_CDE
+    					from	INT_ACCT_MASTER
+    					where INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST', 'IPP', 'SB', 'MF','RCPLUS')
+    			        ) a
+    			)b			
+    		where  b.ACCT_STAT_CDE ='02'
+    ) A,
+    (  
+    	  
+select	distinct
+    	  CLNT_NBR,ACCT_CLSE_DT,ACCT_NBR
+    	from	INT_ACCT_MASTER
+    	where INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST', 'IPP', 'SB',
+		'MF','RCPLUS') 
+	and	ACCT_STAT_CDE='02'
+    	and extract (month from "INT_ACCT_MASTER"."ACCT_CLSE_DT") = extract (month from current_date)     --and extract (year from "INT_ACCT_MASTER"."ACCT_CLSE_DT") = extract (year from current_date) 
+    	
+    	) B
+where A.CLNT_NBR=B.CLNT_NBR 
+group by A.CLNT_NBR,B.ACCT_NBR,A.num, B.ACCT_CLSE_DT
+having max(A.num)=1
+) E
+    												
+								,
+
+
+(
+select	extract (year from "INT_ACCT_MASTER"."ACCT_CLSE_DT") dd1, extract (month from "INT_ACCT_MASTER"."ACCT_CLSE_DT") dd2, "INT_ACCT_MASTER"."CLNT_NBR",
+		"INT_ACCT_MASTER"."ACCT_RELN_NBR", "INT_ACCT_MASTER"."ORIG_BR_CDE",
+		"INT_ACCT_MASTER"."ORIG_DEPT_CDE", "INT_ACCT_MASTER"."ORIG_AO_CDE",
+		"INT_ACCT_MASTER"."ACCT_NBR" ACCT_NBR, "INT_ACCT_MASTER"."ACCT_CLSE_DT" ACCT_CLSE_DT11,
+		"INT_ACCT_MASTER"."PRD_CDE", "INT_CLIENT_MASTER"."CLNT_STAT_IND",
+		(
+case	 
+	when	"INT_ACCT_MASTER"."ACCT_STAT_CDE" = '01' 
+	and	"INT_ACCT_MASTER"."SRC_SYS_ID" in ('ECS', 'ALS') then 'Y' 
+else	'N' 
+end	) indicator55, "INT_ACCT_MASTER"."ACCT_STAT_CDE"ACCT_STAT_CDE, "INT_ACCT_MASTER"."SRC_SYS_ID"SRC_SYS_ID
+ from "INT_ACCT_MASTER" "INT_ACCT_MASTER", "INT_CLIENT_MASTER" "INT_CLIENT_MASTER"
+ where "INT_ACCT_MASTER"."CLNT_NBR" = "INT_CLIENT_MASTER"."CLNT_NBR"
+       --and(  INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST', 'IPP', 'SB',		'MF','RCPLUS') 	and	ACCT_STAT_CDE='02' or INT_ACCT_MASTER.SRC_SYS_ID in ('ALS','ECS') 	
+ )F
+ where E.CLNT_NBR=F.CLNT_NBR  and E.ACCT_NBR=F.ACCT_NBR
+ 
+ 
+ '740039593'
+ -------------***8
+ 	sel   CLNT_NBR,
+	ACCT_NBR,
+  ACCT_STAT_CDE,
+	SRC_SYS_ID,
+	ACCT_CLSE_DT,(case	 
+						when	"INT_ACCT_MASTER"."ACCT_STAT_CDE" = '01' 
+						and	"INT_ACCT_MASTER"."SRC_SYS_ID" in ('ECS', 'ALS') then 'Y' 
+					else	'N' 
+					end	) "Indicator21"
+ from
+  "INT_ACCT_MASTER" "INT_ACCT_MASTER" where CLNT_NBR= '000002246'
+  
+  '000020364'
+  
+   '010397833'
+  
+  
+  750375178
+000543902
+750372078     ###
+740367014
+004949586
+
+000543902
+004949586
+740367014
+750372078
+750375178
+
+  select 	 distinct CLNT_NBR
+  from INT_ACCT_MASTER
+  where INT_ACCT_MASTER.CLNT_NBR  not in (
+												  select distinct
+												  CLNT_NBR
+												from	INT_ACCT_MASTER
+												where INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST', 'IPP', 'SB', 'MF','RCPLUS') and ACCT_STAT_CDE<>'02'
+											--	and extract (month from "INT_ACCT_MASTER"."ACCT_CLSE_DT") -2= extract (month from current_date) 
+												--and extract (year from "INT_ACCT_MASTER"."ACCT_CLSE_DT") = extract (year from current_date) 
+												)
+--and ACCT_STAT_CDE not in ('01', '04', '1', '2') and ACCT_STAT_CDE='02';
+
+
+
+
+sel * from
+INT_ACCT_MASTER
+where ACCT_NBR is not null
+
+--------------55
+select DISTINCT A.CLNT_NBR
+ from 
+(
+select
+*
+from (
+			select
+			  distinct a.CLNT_NBR, a.ACCT_STAT_CDE,
+			  row_number() over (partition by a.CLNT_NBR  order by a.ACCT_STAT_CDE) as num
+			from (
+					select
+					  distinct
+					  CLNT_NBR,
+					  ACCT_STAT_CDE
+					from	INT_ACCT_MASTER
+					where INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST', 'IPP', 'SB', 'MF','RCPLUS')
+			        ) a
+			)b			
+		where  b.ACCT_STAT_CDE ='02'
+) A,
+(  
+	  select distinct
+	  CLNT_NBR,ACCT_CLSE_DT,ACCT_NBR
+	from	INT_ACCT_MASTER
+	where INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST', 'IPP', 'SB', 'MF','RCPLUS') and ACCT_STAT_CDE='02'
+	and extract (month from "INT_ACCT_MASTER"."ACCT_CLSE_DT") = extract (month from current_date) 
+--and extract (year from "INT_ACCT_MASTER"."ACCT_CLSE_DT") = extract (year from current_date) 
+	
+	) B
+												where A.CLNT_NBR=B.CLNT_NBR 
+												group by A.CLNT_NBR,B.ACCT_NBR,A.num 
+												having max(A.num)=1
+												
+												
+												---------4
+
+												
+												
+								
