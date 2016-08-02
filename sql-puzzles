@@ -36,7 +36,7 @@ from (
 												)N
 												
 	------------------------------------------14
-		select
+	select
 distinct
 CLNT_NBR,Acct_nbr,ACCT_STAT_CDE,
 (
@@ -55,7 +55,7 @@ where	INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST',	'IPP', 'SB', 'MF',		'RCPLUS')
 								
 								
 							
-sel distinct M.CLNT_NBR,M.STAT1
+sel distinct M.CLNT_NBR
  from (
 	select distinct "INT_ACCT_MASTER"."CLNT_NBR" "CLNT_NBR",acct_nbr,ACCT_STAT_CDE,ACCT_CLSE_DT, (
 case	 
@@ -64,7 +64,40 @@ else	0
 end	) "ACCT_STAT_CDE1" , sum((case	 
 	when	"INT_ACCT_MASTER"."ACCT_STAT_CDE" = '01' then 1 else	0 end	)) over (partition by "INT_ACCT_MASTER"."CLNT_NBR") "STAT1" 
  from INT_ACCT_MASTER 
+where INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST', 'IPP', 'SB', 'MF','RCPLUS')
+ 
+ )M
+ where M.STAT1=0 and extract (month from M.ACCT_CLSE_DT) = extract (month from current_date)     --and extract (year from "INT_ACCT_MASTER"."ACCT_CLSE_DT") = extract (year from current_date) 
+  and 
+ CLNT_NBR= '000003644'	select
+distinct
+CLNT_NBR,Acct_nbr,ACCT_STAT_CDE,
+(
+case	when ACCT_STAT_CDE='01' then 1 
+	when	ACCT_STAT_CDE='02' then 0  
+else	100000000 
+end	)as TStat,
+count( TStat for INT_ACCT_MASTER.CLNT_NBR)
+from	INT_ACCT_MASTER
+where	INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST',	'IPP', 'SB', 'MF',		'RCPLUS') 
 
+								
+								
+								
+								----------sel  distinct ACCT_STAT_CDE from 	INT_ACCT_MASTER		    			      
+								
+								
+							
+sel distinct M.CLNT_NBR
+ from (
+	select distinct "INT_ACCT_MASTER"."CLNT_NBR" "CLNT_NBR",acct_nbr,ACCT_STAT_CDE,ACCT_CLSE_DT, (
+case	 
+	when	"INT_ACCT_MASTER"."ACCT_STAT_CDE" = '01' then 1 
+else	0 
+end	) "ACCT_STAT_CDE1" , sum((case	 
+	when	"INT_ACCT_MASTER"."ACCT_STAT_CDE" = '01' then 1 else	0 end	)) over (partition by "INT_ACCT_MASTER"."CLNT_NBR") "STAT1" 
+ from INT_ACCT_MASTER 
+where INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST', 'IPP', 'SB', 'MF','RCPLUS')
  
  )M
  where M.STAT1=0 and extract (month from M.ACCT_CLSE_DT) = extract (month from current_date)     --and extract (year from "INT_ACCT_MASTER"."ACCT_CLSE_DT") = extract (year from current_date) 
