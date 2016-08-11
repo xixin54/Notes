@@ -1,0 +1,87 @@
+select distinct 
+       Query15.CTRL_1  as  CTRL_1,
+       Query15.CTRL_KEY  as  CTRL_KEY,
+       Query15.ACCT_RELN_NBR  as  ACCT_RELN_NBR,
+       Query15.ORIG_BR_CDE  as  ORIG_BR_CDE,
+       Query15.ORIG_DEPT_CDE  as  ORIG_DEPT_CDE,
+       Query15.ORIG_AO_CDE  as  ORIG_AO_CDE,
+       Query15.NEW_BR  as  NEW_BR,
+       Query15.NEW_DE  as  NEW_DE,
+       Query15.NEW_AO  as  NEW_AO,
+       Query15.ADD_DATE  as  ADD_DATE,
+       Query15.ADD_ID  as  ADD_ID,
+       Query15.UPD_DATE  as  UPD_DATE,
+       Query15.UPD_ID  as  UPD_ID,
+       Query15.MOVEMENT_REASON  as  MOVEMENT_REASON,
+       Query15.ASSIGNMENT_CODE  as  ASSIGNMENT_CODE,
+       Query15.ACCT_CLSE_DT  as  ACCT_CLSE_DT,
+       Query15.PRD_CDE  as  PRD_CDE,
+       Query15.CLNT_STAT_IND  as  CLNT_STAT_IND,
+       Query26.STAT2  as  Indicator19,
+       Query26.CLNT_NBR  as  CLNT_NBR,
+       Query15.ACCT_NBR  as  ACCT_NBR
+ from 
+        (select distinct 
+           '07'  as  CTRL_1,
+           'Blank'  as  CTRL_KEY,
+           INT_ACCT_MASTER.CLNT_NBR  as  CLNT_NBR,
+           INT_ACCT_MASTER.ACCT_RELN_NBR  as  ACCT_RELN_NBR,
+           INT_ACCT_MASTER.ORIG_BR_CDE  as  ORIG_BR_CDE,
+           INT_ACCT_MASTER.ORIG_DEPT_CDE  as  ORIG_DEPT_CDE,
+           INT_ACCT_MASTER.ORIG_AO_CDE  as  ORIG_AO_CDE,
+           'Blank'  as  NEW_BR,
+           'Blank'  as  NEW_DE,
+           'Blank'  as  NEW_AO,
+           'Blank'  as  ADD_DATE,
+           'Blank'  as  ADD_ID,
+           'Blank'  as  UPD_DATE,
+           'Blank'  as  UPD_ID,
+           'Blank'  as  MOVEMENT_REASON,
+           'Blank'  as  ASSIGNMENT_CODE,
+          -- XMAX(INT_ACCT_MASTER.ACCT_NBR  for INT_ACCT_MASTER.CLNT_NBR,INT_ACCT_MASTER.ACCT_CLSE_DT )  as  ACCT_NBR,
+           max("INT_ACCT_MASTER"."ACCT_NBR") over (partition by "INT_ACCT_MASTER"."CLNT_NBR","INT_ACCT_MASTER"."ACCT_CLSE_DT") "ACCT_NBR",
+           INT_ACCT_MASTER.ACCT_CLSE_DT  as  ACCT_CLSE_DT,
+           INT_ACCT_MASTER.PRD_CDE  as  PRD_CDE,
+           INT_CLIENT_MASTER.CLNT_STAT_IND  as  CLNT_STAT_IND,
+           case when ((INT_ACCT_MASTER.ACCT_STAT_CDE = '01') and (INT_ACCT_MASTER.SRC_SYS_ID in ('ECS','ALS'))) then 'Y'
+             else 'N'
+           end  as  Indicator21,
+           INT_ACCT_MASTER.ACCT_STAT_CDE  as  ACCT_STAT_CDE,
+           INT_ACCT_MASTER.SRC_SYS_ID  as  SRC_SYS_ID
+     from 
+           INT_ACCT_MASTER INT_ACCT_MASTER,
+           INT_CLIENT_MASTER INT_CLIENT_MASTER
+     where 
+           ((extract(month from INT_ACCT_MASTER.ACCT_CLSE_DT) = extract(month from current_date)) and (extract(year from INT_ACCT_MASTER.ACCT_CLSE_DT) = extract(year from current_date))) and 
+           (INT_ACCT_MASTER.CLNT_NBR = INT_CLIENT_MASTER.CLNT_NBR)
+    )Query15 , 
+      (select distinct 
+           SQL1.CLNT_NBR  as  CLNT_NBR,
+           case 
+             when SQL1.STAT2 = 0 then 'N'
+             when SQL1.STAT2 = 1 then 'Y'
+           end  as  STAT2
+     			from 
+				           								 (
+				     select distinct INT_ACCT_MASTER.CLNT_NBR, sum((case   when INT_ACCT_MASTER.ACCT_STAT_CDE = '01' then 1 else 0 end )) over (partition by INT_ACCT_MASTER.CLNT_NBR) STAT2 
+				     from INT_ACCT_MASTER,(sel distinct M.CLNT_NBR
+				               from (
+				               select distinct INT_ACCT_MASTER.CLNT_NBR CLNT_NBR,acct_nbr,ACCT_STAT_CDE,ACCT_CLSE_DT,
+				                (
+				              case  
+				               when INT_ACCT_MASTER.ACCT_STAT_CDE = '01' then 1 
+				              else 0 
+				              end ) ACCT_STAT_CDE1 , sum((case  
+				               when INT_ACCT_MASTER.ACCT_STAT_CDE = '01' then 1 else 0 end )) over (partition by INT_ACCT_MASTER.CLNT_NBR) STAT1 
+				               from INT_ACCT_MASTER 
+				              where INT_ACCT_MASTER.SRC_SYS_ID in ('IMPMAST', 'IPP', 'SB', 'MF','RCPLUS')
+				               
+				               )M
+				               where M.STAT1=0 and extract (month from M.ACCT_CLSE_DT) = extract (month from current_date) and extract (year from INT_ACCT_MASTER.ACCT_CLSE_DT) = extract (year from current_date)     )N
+				     where INT_ACCT_MASTER.CLNT_NBR =N. CLNT_NBR
+				                           ) SQL1				
+    )Query26 
+
+       
+ where 
+       (Query15.CLNT_NBR = Query26.CLNT_NBR)  
