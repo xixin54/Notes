@@ -12,3 +12,6 @@ http://www.ee.surrey.ac.uk/Teaching/Unix/
 https://en.wikisource.org/wiki/Finnegan%27s_Wake
 
 http://journals.aps.org/pr/pdf/10.1103/PhysRev.47.777
+
+udo apt-get install python-dev python-pip libxml2-dev libxslt1-dev zlib1g-dev libffi-dev libssl-dev
+>>pip install Scrapy
